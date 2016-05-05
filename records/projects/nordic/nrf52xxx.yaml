@@ -1,8 +1,8 @@
 common:
     target:
-        - cortex-m0
+        - cortex-m4
     group_name:
         - flash_driver
     sources:
         - source
-        - source/nordic/nRF51
+        - source/nordic/nRF52
