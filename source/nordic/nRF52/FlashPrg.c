@@ -33,9 +33,9 @@
 *
 *       Register definitions
 */
-#define FLASH_REG_BASE_ADDR (0x4001E000)
-#define INFO_REGS_BASE_ADDR (0x10000000)
-#define WDT_REGS_BASE_ADDR  (0x40010000)
+#define FLASH_REG_BASE_ADDR (0x4001E000) //NVMC
+#define INFO_REGS_BASE_ADDR (0x10000000) //FICR
+#define WDT_REGS_BASE_ADDR  (0x40010000) //WDT
 
 #define FLASH_REG_READY       *((volatile U32*)(FLASH_REG_BASE_ADDR + 0x400))
 #define FLASH_REG_CONFIG      *((volatile U32*)(FLASH_REG_BASE_ADDR + 0x504))
@@ -44,7 +44,7 @@
 #define FLASH_REG_ERASEUICR   *((volatile U32*)(FLASH_REG_BASE_ADDR + 0x514))
 #define INFO_REG_CODEPAGESIZE *((volatile U32*)(INFO_REGS_BASE_ADDR + 0x10))
 #define INFO_REG_CODESIZE     *((volatile U32*)(INFO_REGS_BASE_ADDR + 0x14))
-#define INFO_REG_CODEBASE     *((volatile U32*)(INFO_REGS_BASE_ADDR + 0x18))
+//#define INFO_REG_CODEBASE     *((volatile U32*)(INFO_REGS_BASE_ADDR + 0x18))
 //#define INFO_REG_CONFIGID     *((volatile U32*)(INFO_REGS_BASE_ADDR + 0x5C))
 #define INFO_REG_DEVICEID     *((volatile U32*)(INFO_REGS_BASE_ADDR + 0x60))
 
@@ -90,11 +90,18 @@ static void _EraseSector(U32 Addr)
     // Make sure that flash controller is in erase mode
     //
     FLASH_REG_CONFIG = FLASH_MODE_ERASE;
+	do {
+        _FeedWDT();
+        Status = FLASH_REG_READY;
+        if (Status & 1) {        // Flash controller ready?
+          break;
+        }
+    } while(1);
     //
     // Check if sector is the UICR or CODE region
     //
     if (Addr >= 0x10001000) {
-        FLASH_REG_ERASEUICR = 1;
+        FLASH_REG_ERASEUICR = 1; //start to erase of UICR
     } else {
         FLASH_REG_ERASEPAGE = Addr;
     }
@@ -112,6 +119,14 @@ static void _EraseSector(U32 Addr)
     // Bring back flash controller into read mode
     //
     FLASH_REG_CONFIG = FLASH_MODE_READ;
+	
+	do {
+        _FeedWDT();
+        Status = FLASH_REG_READY;
+        if (Status & 1) {        // Flash controller ready?
+          break;
+        }
+    } while(1);
 }
 
 /*
@@ -154,6 +169,14 @@ int EraseChip (void)
     // Make sure that flash controller is in erase mode
     //
     FLASH_REG_CONFIG = FLASH_MODE_ERASE;
+	
+	do {
+        _FeedWDT();
+        Status = FLASH_REG_READY;
+        if (Status & 1) {        // Flash controller ready?
+          break;
+        }
+    } while(1);
     //
     // Use erase chip command, since it is faster
     //
@@ -175,6 +198,15 @@ int EraseChip (void)
     // Bring back flash controller into read mode
     //
     FLASH_REG_CONFIG = FLASH_MODE_READ;   
+	
+	do {
+        _FeedWDT();
+        Status = FLASH_REG_READY;
+        if (Status & 1) {        // Flash controller ready?
+          break;
+        }
+    } while(1);
+		
     return (0);                                    // Finished without Errors
 }
 
@@ -214,6 +246,15 @@ int ProgramPage (unsigned long adr, unsigned long sz, unsigned char *buf)
     // Make sure that flash controller is in write mode
     //
     FLASH_REG_CONFIG = FLASH_MODE_WRITE;
+	
+	do {
+        _FeedWDT();
+        Status = FLASH_REG_READY;
+        if (Status & 1) {        // Flash controller ready?
+          break;
+        }
+    } while(1);
+	
     //
     // Program word by word
     //
@@ -234,5 +275,14 @@ int ProgramPage (unsigned long adr, unsigned long sz, unsigned char *buf)
     // Bring back flash controller into read mode
     //
     FLASH_REG_CONFIG = FLASH_MODE_READ;
+	
+	do {
+        _FeedWDT();
+        Status = FLASH_REG_READY;
+        if (Status & 1) {        // Flash controller ready?
+          break;
+        }
+    } while(1);
+		
     return (0);                                  // Finished without Errors
 }

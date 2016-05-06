@@ -30,7 +30,7 @@ struct FlashDevice const FlashDevice  =  {
     0xFF,                       // Initial Content of Erased Memory
     100,                        // Program Page Timeout 100 mSec
     3000,                       // Erase Sector Timeout 3000 mSec
-    {{0x000400, 0x000000},      // Sector Size  1 KB (512 Sectors)
+    {{0x001000, 0x000000},      // Sector Size  4 KB (128 Sectors)
 //    {0x000400, 0x10001000},     // Sector Size  1 KB (1 Sector)
     {SECTOR_END}}               // Marks end of sector table
 };
